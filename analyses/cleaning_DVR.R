@@ -57,5 +57,25 @@ dvr$risk<-dvr$leafout-dvr$budburst
 
 ### Let's add in traits data now!### 
 traits<-read.csv("output/clean_traits.csv", header=TRUE)
+traits$d.index<-traits$perim/(2*sqrt(traits$area*pi))
+traits$Ind<-paste(traits$species, traits$site, traits$ind, traits$plot, sep="_")
+traits$d.index<-ave(traits$d.index, traits$Ind)
+
+dvr$Ind<-paste(dvr$Ind, dvr$Plot, sep="_")
+
+test<-full_join(dvr, traits)
+
+library(rstanarm)
+test<-subset(test, select=c("risk", "Ind", "budburst", "d.index", "species"))
+test<-test[!duplicated(test),]
+test<-test[!(test$risk<0),]
+test$risk<-as.integer(test$risk)
+
+fit<-stan_glmer(risk~d.index+budburst+(d.index+budburst|species), data=test)
+
+fit2<-stan_glmer(risk~d.index+(1|species), data=test)
+
+library(brms)
+fit.brm<-brm(risk~d.index+budburst+(d.index+budburst|species), data=test)
 
 
