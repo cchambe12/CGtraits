@@ -15,8 +15,8 @@ library(lubridate)
 library(weathermetrics)
 library(geosphere)
 library(rstanarm)
-library(broom)
 library(brms)
+library(rstan)
 
 # Set Working Directory
 setwd("~/Documents/git/CGtraits/analyses")
@@ -198,10 +198,28 @@ dvr.stan<-na.omit(dvr.stan)
 
 
 ## Maybe one model with serrations, bb date and frz and trichomes and another with classic force, chill and photo?
-traits<-stan_glm(risk ~ d.index + budburst + frz + (d.index + budburst + frz|species), data=dvr.stan, chains=2)
+traits<-stan_glmer(risk ~ d.index + budburst + (d.index+budburst|species), 
+                 data=dvr.stan, chains=4, control = list(max_treedepth = 12))
 
-dvr<-brm(budburst~sm.chill+force+photo+sm.chill:force+sm.chill:photo+force:photo +
-                  (sm.chill+force+photo|species), data=dvr.stan, chains=4, control = list(max_treedepth = 12))
+plotting <- as.data.frame(summary(traits)$summary)
+simple<-plotting
+simple$var<- rownames(simple)
+
+ser.bud<-ggplot(dvr.stan, aes(x=d.index, y=budburst)) + geom_point(aes(col=as.factor(species))) + 
+  facet_wrap(~species) + theme(legend.position = "none")
+
+## Not sure how to do chilling...
+bb<-brm(budburst~sm.chill+force+photo+(sm.chill+force+photo|species/site), data=dvr.stan, chains=4, control = list(max_treedepth = 12))
+dvr<-brm(risk~sm.chill+force+photo+(sm.chill+force+photo|species), data=dvr.stan, chains=4, control = list(max_treedepth = 12))
+
+quartz()
+cf<-ggplot(dvr.stan, aes(x=sm.chill, y=force)) + geom_point(aes(col=as.factor(species))) + 
+  facet_wrap(~species) + theme(legend.position = "none")
+cp<-ggplot(dvr.stan, aes(x=sm.chill, y=force)) + geom_point(aes(col=as.factor(species))) + 
+  facet_wrap(~species) + theme(legend.position = "none")
+fp<-ggplot(dvr.stan, aes(x=force, y=photo)) + geom_point(aes(col=as.factor(species))) + 
+  facet_wrap(~species) + theme(legend.position = "none")
+
 
 phen<-as.data.frame(tidy(dvr,robust = TRUE))
 
