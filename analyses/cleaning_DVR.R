@@ -77,6 +77,10 @@ dxx$leafout<-ave(dxx$doy, dxx$Ind, FUN=max)
 dvr<-dplyr::select(dvr, Ind, Plot)
 
 dvr<-full_join(dxx, dvr)
+dvr$doy <- NULL
+dvr <- dvr[!duplicated(dvr),]
+
+#write.csv(dvr, file="output/dvr_cg_2018.csv", row.names=FALSE)
 
 ### Let's add in traits data now!### 
 traits<-read.csv("output/clean_traits.csv", header=TRUE)
