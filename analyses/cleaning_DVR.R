@@ -38,8 +38,13 @@ df<-df[!(df$bbch==""),]
 dx<-separate(df, bbch, into = c("first", "second"), sep = " (?=[^ ]+$)")
 dx<-separate(dx, first, into = c("first", "third"), sep = " (?=[^ ]+$)")
 
+dx$first <- substr(dx$first, 0, 2)
+dx$second <- substr(dx$second, 0, 2)
+dx$third <- substr(dx$third, 0, 2)
+
 dx$bb<-NA
-dx$bb<-ifelse(dx$first=="9" | dx$first=="11" | dx$second=="9" | dx$second=="11" | dx$third=="9" | dx$third=="11", dx$doy, dx$bb)
+dx$bb<-ifelse(dx$first=="9" | dx$first=="9-" | dx$first=="11" | dx$second=="9" | dx$second=="9-" |
+                dx$second=="11" | dx$third=="9" | dx$third=="9-" | dx$third=="11", dx$doy, dx$bb)
 dx$lo<-NA
 dx$lo<-ifelse(dx$first=="19" | dx$second=="19" | dx$third=="19", dx$doy, dx$lo)
 
